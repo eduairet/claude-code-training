@@ -1,0 +1,14 @@
+services:
+  api:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - cargo-cache:/usr/local/cargo/registry
+      - target-cache:/app/target
+    working_dir: /app
+
+volumes:
+  cargo-cache:
+  target-cache:

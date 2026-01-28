@@ -5,8 +5,11 @@ This repository contains the training data and scripts used to learn Claude Code
 ## Notes
 
 1. [Context engineering](./_notes/01-context-engineering.md)
+2. [Claude Code first steps](./_notes/02-claude-code-first-steps.md)
 
+## Examples
 
+1. [Basic code generation](./examples/01-basic-code-generation.md)
 
 ## References
 
