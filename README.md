@@ -9,7 +9,7 @@ This repository contains the training data and scripts used to learn Claude Code
 
 ## Examples
 
-1. [Basic code generation](./examples/01-basic-code-generation.md)
+1. [Rust API server](./examples/rust_api/CLAUDE.md)
 
 ## References
 
