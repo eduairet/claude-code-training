@@ -72,11 +72,13 @@
   ```
 
 - This will prompt Claude Code to outline its intended approach before making any modifications to your codebase.
+- Sometimes after creating a plan is better to restart the session to ensure Claude Code has a fresh context.
 
 ## Selecting models
 
 - You can select different Claude models for your coding sessions depending on your needs.
 - To select a model, use the command:
+
   ```bash
   /model
   ```
