@@ -1,0 +1,437 @@
+openapi: 3.0.3
+info:
+  title: Rust Color API
+  description: API for color conversions, previews, and CSS color name lookups
+  version: 0.1.0
+  contact:
+    name: API Support
+
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+
+components:
+  schemas:
+    RgbColor:
+      type: object
+      properties:
+        r:
+          type: integer
+          minimum: 0
+          maximum: 255
+          description: Red component (0-255)
+        g:
+          type: integer
+          minimum: 0
+          maximum: 255
+          description: Green component (0-255)
+        b:
+          type: integer
+          minimum: 0
+          maximum: 255
+          description: Blue component (0-255)
+      required:
+        - r
+        - g
+        - b
+      example:
+        r: 255
+        g: 85
+        b: 0
+
+    ColorResponse:
+      type: object
+      properties:
+        hex:
+          type: string
+          pattern: '^#[0-9a-fA-F]{6}$'
+          description: Hex color code with # prefix
+        rgb:
+          $ref: '#/components/schemas/RgbColor'
+      required:
+        - hex
+        - rgb
+      example:
+        hex: "#ff5500"
+        rgb:
+          r: 255
+          g: 85
+          b: 0
+
+    ColorNameResponse:
+      type: object
+      properties:
+        name:
+          type: string
+          description: CSS color name
+        hex:
+          type: string
+          pattern: '^#[0-9a-fA-F]{6}$'
+          description: Hex color code with # prefix
+        rgb:
+          $ref: '#/components/schemas/RgbColor'
+      required:
+        - name
+        - hex
+        - rgb
+      example:
+        name: "orange"
+        hex: "#ffa500"
+        rgb:
+          r: 255
+          g: 165
+          b: 0
+
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          description: Health status indicator
+        message:
+          type: string
+          description: Human-readable status message
+      required:
+        - status
+        - message
+      example:
+        status: "ok"
+        message: "API is running"
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error code or type
+        message:
+          type: string
+          description: Detailed error message
+      required:
+        - error
+        - message
+      example:
+        error: "invalid_format"
+        message: "Invalid hex color format. Expected 3 or 6 digit hex code."
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      description: Returns the health status of the API
+      operationId: healthCheck
+      tags:
+        - Health
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              example:
+                status: "ok"
+                message: "API is running"
+
+  /color/{hex}:
+    get:
+      summary: Preview color by hex code
+      description: Returns an HTML page displaying the specified color as a full-screen colored div
+      operationId: previewColorByHex
+      tags:
+        - Preview
+      parameters:
+        - name: hex
+          in: path
+          required: true
+          description: Hex color code (3 or 6 digits, with or without # prefix)
+          schema:
+            type: string
+            pattern: '^#?[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$'
+          examples:
+            six_digit_with_hash:
+              value: "#ff5500"
+              summary: 6-digit hex with #
+            six_digit_without_hash:
+              value: "ff5500"
+              summary: 6-digit hex without #
+            three_digit:
+              value: "f50"
+              summary: 3-digit hex shorthand
+      responses:
+        '200':
+          description: HTML page with colored background
+          content:
+            text/html:
+              schema:
+                type: string
+              example: |
+                <!DOCTYPE html>
+                <html>
+                <head><title>Color Preview</title></head>
+                <body style="background-color: #ff5500; margin: 0; height: 100vh;"></body>
+                </html>
+        '400':
+          description: Invalid hex color format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "invalid_format"
+                message: "Invalid hex color format"
+
+  /convert/hex-to-rgb/{hex}:
+    get:
+      summary: Convert hex color to RGB
+      description: Converts a hex color code to RGB values
+      operationId: convertHexToRgb
+      tags:
+        - Conversion
+      parameters:
+        - name: hex
+          in: path
+          required: true
+          description: Hex color code (3 or 6 digits, with or without # prefix)
+          schema:
+            type: string
+            pattern: '^#?[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$'
+          examples:
+            six_digit:
+              value: "ff5500"
+              summary: 6-digit hex code
+            three_digit:
+              value: "f50"
+              summary: 3-digit hex shorthand
+            with_hash:
+              value: "#ff5500"
+              summary: With # prefix
+      responses:
+        '200':
+          description: Successful conversion
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ColorResponse'
+              examples:
+                six_digit:
+                  value:
+                    hex: "#ff5500"
+                    rgb:
+                      r: 255
+                      g: 85
+                      b: 0
+                three_digit:
+                  value:
+                    hex: "#ff5500"
+                    rgb:
+                      r: 255
+                      g: 85
+                      b: 0
+        '400':
+          description: Invalid hex color format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "invalid_format"
+                message: "Invalid hex color format. Expected 3 or 6 digit hex code."
+
+  /convert/rgb-to-hex:
+    get:
+      summary: Convert RGB to hex color
+      description: Converts RGB color values to hex color code
+      operationId: convertRgbToHex
+      tags:
+        - Conversion
+      parameters:
+        - name: r
+          in: query
+          required: true
+          description: Red component (0-255)
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 255
+          example: 255
+        - name: g
+          in: query
+          required: true
+          description: Green component (0-255)
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 255
+          example: 85
+        - name: b
+          in: query
+          required: true
+          description: Blue component (0-255)
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 255
+          example: 0
+      responses:
+        '200':
+          description: Successful conversion
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ColorResponse'
+              example:
+                hex: "#ff5500"
+                rgb:
+                  r: 255
+                  g: 85
+                  b: 0
+        '400':
+          description: Invalid RGB values (out of range or missing parameters)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                out_of_range:
+                  value:
+                    error: "invalid_value"
+                    message: "RGB values must be between 0 and 255"
+                missing_parameter:
+                  value:
+                    error: "missing_parameter"
+                    message: "Required parameters: r, g, b"
+
+  /color/rgb:
+    get:
+      summary: Preview color by RGB values
+      description: Returns an HTML page displaying the specified RGB color as a full-screen colored div
+      operationId: previewColorByRgb
+      tags:
+        - Preview
+      parameters:
+        - name: r
+          in: query
+          required: true
+          description: Red component (0-255)
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 255
+          example: 255
+        - name: g
+          in: query
+          required: true
+          description: Green component (0-255)
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 255
+          example: 85
+        - name: b
+          in: query
+          required: true
+          description: Blue component (0-255)
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 255
+          example: 0
+      responses:
+        '200':
+          description: HTML page with colored background
+          content:
+            text/html:
+              schema:
+                type: string
+              example: |
+                <!DOCTYPE html>
+                <html>
+                <head><title>Color Preview</title></head>
+                <body style="background-color: rgb(255, 85, 0); margin: 0; height: 100vh;"></body>
+                </html>
+        '400':
+          description: Invalid RGB values (out of range or missing parameters)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "invalid_value"
+                message: "RGB values must be between 0 and 255"
+
+  /colors/{name}:
+    get:
+      summary: Lookup color by CSS name
+      description: Returns color information for a CSS standard color name (case-insensitive)
+      operationId: lookupColorByName
+      tags:
+        - Lookup
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: CSS color name (case-insensitive, one of 140 standard CSS colors)
+          schema:
+            type: string
+          examples:
+            orange:
+              value: "orange"
+              summary: CSS orange
+            red:
+              value: "red"
+              summary: CSS red
+            dodgerblue:
+              value: "dodgerblue"
+              summary: CSS dodgerblue
+      responses:
+        '200':
+          description: Color found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ColorNameResponse'
+              examples:
+                orange:
+                  value:
+                    name: "orange"
+                    hex: "#ffa500"
+                    rgb:
+                      r: 255
+                      g: 165
+                      b: 0
+                red:
+                  value:
+                    name: "red"
+                    hex: "#ff0000"
+                    rgb:
+                      r: 255
+                      g: 0
+                      b: 0
+                dodgerblue:
+                  value:
+                    name: "dodgerblue"
+                    hex: "#1e90ff"
+                    rgb:
+                      r: 30
+                      g: 144
+                      b: 255
+        '404':
+          description: Color name not recognized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "not_found"
+                message: "Color name not recognized. Must be a valid CSS color name."
+
+tags:
+  - name: Health
+    description: Health check endpoints
+  - name: Preview
+    description: HTML color preview endpoints
+  - name: Conversion
+    description: Color conversion endpoints
+  - name: Lookup
+    description: Color name lookup endpoints

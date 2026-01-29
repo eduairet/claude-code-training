@@ -1,4 +1,10 @@
-use axum::{routing::get, Json, Router};
+use axum::{
+    extract::Path,
+    http::header,
+    response::{Html, IntoResponse},
+    routing::get,
+    Json, Router,
+};
 use serde::Serialize;
 use std::net::SocketAddr;
 
@@ -15,9 +21,30 @@ async fn health_check() -> Json<HealthResponse> {
     })
 }
 
+async fn color(Path(hex): Path<String>) -> Html<String> {
+    let hex_color = if hex.starts_with('#') {
+        hex
+    } else {
+        format!("#{}", hex)
+    };
+
+    Html(format!(
+        r#"<!DOCTYPE html>
+<html>
+<head><title>Color: {}</title></head>
+<body style="margin:0;padding:0;">
+<div style="width:100vw;height:100vh;background-color:{};"></div>
+</body>
+</html>"#,
+        hex_color, hex_color
+    ))
+}
+
 #[tokio::main]
 async fn main() {
-    let app = Router::new().route("/health", get(health_check));
+    let app = Router::new()
+        .route("/health", get(health_check))
+        .route("/color/:hex", get(color));
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
     println!("Server running on http://{}", addr);
