@@ -3,12 +3,17 @@ info:
   title: Rust Color API
   description: API for color conversions, previews, and CSS color name lookups
   version: 0.1.0
+  license:
+    name: MIT
   contact:
     name: API Support
 
 servers:
   - url: http://localhost:3000
     description: Local development server
+
+security:
+  - {}
 
 components:
   schemas:
