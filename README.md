@@ -10,6 +10,7 @@ This repository contains the training data and scripts used to learn Claude Code
 ## Examples
 
 1. [Rust API server](./examples/rust_api/CLAUDE.md)
+2. [Color image generator hook](./examples/color_hook/README.md)
 
 ## References
 
