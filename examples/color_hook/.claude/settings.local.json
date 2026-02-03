@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [{"type": "command", "command": "powershell -Command \"docker run --rm -v \\\"${PWD}/output:/output\\\" color-hook\""}]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [{"type": "command", "command": "powershell -Command \"docker run --rm -v \\\"${PWD}/output:/output\\\" color-hook\""}]
+      }
+    ]
+  }
+}
