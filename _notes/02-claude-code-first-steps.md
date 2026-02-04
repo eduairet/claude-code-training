@@ -53,7 +53,19 @@
 
 ## Customizing context
 
-- You can customize the context Claude Code builds by editing the `CLAUDE.md` file generated in your project root or by adding additional context files.
+- You can customize the context Claude Code builds by editing the `CLAUDE.md` file generated in your project root or by adding additional context files, most commonly known as "memory files".
+
+- **Memory types in Claude Code:**
+
+  | Memory Type                | Location                               | Scope              | Purpose                                       |
+  | -------------------------- | -------------------------------------- | ------------------ | --------------------------------------------- |
+  | **User memory**            | `~/.claude/CLAUDE.md`                  | All your projects  | Personal preferences (code style, shortcuts)  |
+  | **Project memory**         | `./CLAUDE.md` or `./.claude/CLAUDE.md` | Team (via git)     | Project architecture, coding standards        |
+  | **Project rules**          | `./.claude/rules/*.md`                 | Team (via git)     | Modular topic-specific instructions           |
+  | **Project memory (local)** | `./CLAUDE.local.md`                    | Just you (project) | Personal sandbox URLs, test data (gitignored) |
+  - Use `/memory` to view loaded memory files or edit them directly.
+  - See the [official memory documentation](https://code.claude.com/docs/en/memory) for more details.
+
 - The most common way to add context is to create a `.claude` directory in your project root and add markdown files there (e.g., `api_overview.md`, `data_models.md`).
 - Another common approach is to create a `memory/` directory to store relevant information that Claude Code can reference during your coding sessions.
 - Claude automatically checks all the `CLAUDE.md`, `.claude/`, and `memory/` files when building context for your coding sessions, but you can also specify when to use depending on the task at hand.
@@ -62,6 +74,7 @@
   /use .claude/api_overview.md
   /use memory/data_models.md
   ```
+- Remember that Claude is going to reference these files when making decisions, so keep them up to date and relevant to your project, and keep them specific to avoid context pollution and costly context usage.
 
 ## Plan mode
 
@@ -213,6 +226,162 @@
 - Hooks receive context via environment variables (e.g., `$CLAUDE_FILE_PATH`, `$CLAUDE_TOOL_NAME`).
 
 - If a `PreToolUse` hook exits with a non-zero status, it blocks the tool from executing.
+
+## Rewinding and Checkpointing
+
+- Claude Code automatically tracks file edits as you work, allowing you to undo changes and rewind to previous states.
+- Every user prompt creates a new checkpoint, and checkpoints persist across sessions.
+
+- **How to rewind:**
+  - Press `Esc` twice (`Esc` + `Esc`) or use the `/rewind` command to open the rewind menu.
+
+- **Restore options:**
+
+  | Option                         | What it does                                       |
+  | ------------------------------ | -------------------------------------------------- |
+  | **Conversation only**          | Rewind context while keeping code changes          |
+  | **Code only**                  | Revert file changes while keeping the conversation |
+  | **Both code and conversation** | Full reset to a prior point in the session         |
+
+- **What gets tracked:**
+  - File edits via Claude's tools (Edit, Write)
+  - New file creation
+  - File deletions via edit tools
+
+- **Limitations:**
+  - Bash command changes (`rm`, `mv`, `cp`) are **not tracked** and cannot be undone
+  - External/manual changes outside Claude Code are not captured
+  - Not a replacement for version control (Git) — think of checkpoints as "local undo"
+
+- See the [official checkpointing documentation](https://code.claude.com/docs/en/checkpointing) for more details.
+
+## Custom Commands (Skills)
+
+- Custom commands let you create reusable prompts invoked with `/command-name`.
+- **Slash commands have been merged into skills** — existing `.claude/commands/` files still work, but skills add extra features.
+
+### Where to store commands/skills
+
+| Location     | Path                               | Scope             |
+| ------------ | ---------------------------------- | ----------------- |
+| **Personal** | `~/.claude/skills/<name>/SKILL.md` | All your projects |
+| **Project**  | `.claude/skills/<name>/SKILL.md`   | This project only |
+| **Legacy**   | `.claude/commands/<name>.md`       | Still works       |
+
+### Creating a skill
+
+1. Create the skill directory:
+
+   ```bash
+   mkdir -p ~/.claude/skills/my-skill
+   ```
+
+2. Create `SKILL.md` with YAML frontmatter and instructions:
+
+   ```yaml
+   ---
+   name: fix-issue
+   description: Fix a GitHub issue by number
+   disable-model-invocation: true
+   ---
+
+   Fix GitHub issue $ARGUMENTS:
+   1. Read the issue description
+   2. Implement the fix
+   3. Write tests
+   4. Create a commit
+   ```
+
+3. Invoke with `/fix-issue 123`
+
+### Key frontmatter options
+
+| Field                      | Purpose                                                    |
+| -------------------------- | ---------------------------------------------------------- |
+| `name`                     | Becomes the `/slash-command` name                          |
+| `description`              | Helps Claude decide when to auto-load the skill            |
+| `disable-model-invocation` | Set `true` to prevent Claude from triggering automatically |
+| `user-invocable`           | Set `false` to hide from `/` menu (Claude-only)            |
+| `allowed-tools`            | Tools Claude can use without permission when skill active  |
+| `context`                  | Set to `fork` to run in a subagent                         |
+
+### Using arguments
+
+- `$ARGUMENTS` — All arguments passed to the skill
+- `$ARGUMENTS[0]` or `$0` — First argument
+- `$ARGUMENTS[1]` or `$1` — Second argument, etc.
+
+### Supporting files
+
+Skills can include multiple files for templates, examples, or scripts:
+
+```
+my-skill/
+├── SKILL.md           # Main instructions (required)
+├── template.md        # Template for Claude to fill in
+└── scripts/
+    └── helper.py      # Script Claude can execute
+```
+
+- See the [official skills documentation](https://code.claude.com/docs/en/skills) for more details.
+
+## Claude Code LSP - Language Server Protocol
+
+- LSP gives Claude real-time code intelligence while working on your codebase.
+- Instead of searching files with grep (which can take 45+ seconds), LSP provides instant navigation in ~50ms.
+
+### What LSP provides
+
+- **Instant diagnostics** — Claude sees errors and warnings immediately after each edit
+- **Code navigation** — go to definition, find references, hover information
+- **Language awareness** — type information and documentation for code symbols
+
+### How to enable LSP
+
+1. **Install the language server binary** for your language (LSP plugins don't include the server):
+
+   | Language   | Install command                                                                              |
+   | ---------- | -------------------------------------------------------------------------------------------- |
+   | Python     | `pip install pyright` or `npm install -g pyright`                                            |
+   | TypeScript | `npm install -g typescript-language-server typescript`                                       |
+   | Rust       | [rust-analyzer installation guide](https://rust-analyzer.github.io/manual.html#installation) |
+   | Go         | `go install golang.org/x/tools/gopls@latest`                                                 |
+
+2. **Install the LSP plugin** from the marketplace:
+
+   ```bash
+   /plugin  # Then search for "lsp" in the Discover tab
+   ```
+
+   - You can check installed plugins by navigating with the left and right arrow keys to the Installed tab.
+
+3. **Enable LSP** (if not already enabled):
+   ```bash
+   ENABLE_LSP_TOOL=1 claude
+   ```
+   Or add `export ENABLE_LSP_TOOL=1` to your shell profile for permanent enablement.
+
+### Supported languages
+
+Python, TypeScript, Go, Rust, Java, C/C++, C#, PHP, Kotlin, Ruby, HTML/CSS, and more via community plugins.
+
+### Creating custom LSP plugins
+
+If your language isn't covered, create a `.lsp.json` in your plugin:
+
+```json
+{
+  "go": {
+    "command": "gopls",
+    "args": ["serve"],
+    "extensionToLanguage": {
+      ".go": "go"
+    }
+  }
+}
+```
+
+- See the [official plugins reference](https://code.claude.com/docs/en/plugins-reference) for LSP configuration details.
 
 ## References
 
