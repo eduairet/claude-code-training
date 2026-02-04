@@ -11,7 +11,7 @@ def generate_random_color():
     return (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
 
 
-def rgb_to_hex(color):
+def rgb_to_hex(color: tuple[int, int, int]) -> str:
     """Convert an RGB tuple to a hex string (without #)."""
     return f"{color[0]:02x}{color[1]:02x}{color[2]:02x}"
 

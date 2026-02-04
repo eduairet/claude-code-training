@@ -1,0 +1,23 @@
+[project]
+name = "color-hook"
+version = "0.1.0"
+description = "Docker-based Python tool that generates random color images"
+requires-python = ">=3.12"
+dependencies = [
+    "Pillow>=11.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.3",
+]
+
+[tool.pyright]
+pythonVersion = "3.12"
+typeCheckingMode = "basic"
+include = ["*.py"]
+exclude = ["output"]
+
+[tool.pytest.ini_options]
+testpaths = ["."]
+python_files = ["test_*.py"]
