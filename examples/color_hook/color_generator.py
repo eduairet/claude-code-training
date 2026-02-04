@@ -6,15 +6,35 @@ from pathlib import Path
 from PIL import Image
 
 
+def generate_random_color():
+    """Generate a random RGB color tuple."""
+    return (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+
+
+def rgb_to_hex(color):
+    """Convert an RGB tuple to a hex string (without #)."""
+    return f"{color[0]:02x}{color[1]:02x}{color[2]:02x}"
+
+
+def create_color_image(color, size=(200, 200)):
+    """Create a PIL Image filled with the given color."""
+    return Image.new("RGB", size, color)
+
+
+def get_output_dir():
+    """Get the output directory path."""
+    return Path("/output" if Path("/output").exists() else "./output")
+
+
 def main():
-    output_dir = Path("/output" if Path("/output").exists() else "./output")
+    output_dir = get_output_dir()
     output_dir.mkdir(exist_ok=True)
 
-    color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
-    hex_code = f"{color[0]:02x}{color[1]:02x}{color[2]:02x}"
+    color = generate_random_color()
+    hex_code = rgb_to_hex(color)
 
     output_path = output_dir / f"color_{hex_code}.png"
-    Image.new("RGB", (200, 200), color).save(output_path)
+    create_color_image(color).save(output_path)
 
     print(f"Color: #{hex_code}")
     print(f"RGB: {color}")

@@ -1,0 +1,11 @@
+services:
+  app:
+    build: .
+    volumes:
+      - ./output:/output
+
+  test:
+    build: .
+    command: pytest -v test_color_generator.py
+    volumes:
+      - ./test_color_generator.py:/app/test_color_generator.py:ro
