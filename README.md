@@ -5,7 +5,8 @@ This repository contains the training data and scripts used to learn Claude Code
 ## Notes
 
 1. [Context engineering](./_notes/01-context-engineering.md)
-2. [Claude Code first steps](./_notes/02-claude-code-first-steps.md)
+2. [Claude Code overview](./_notes/02-claude-code-overview.md)
+3. [Model Context Protocol (MCP)](./_notes/03-model-context-protocol.md)
 
 ## Examples
 

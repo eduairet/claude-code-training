@@ -1,4 +1,4 @@
-# Claude Code first steps
+# Claude Code overview
 
 ## Getting started with Claude Code
 
