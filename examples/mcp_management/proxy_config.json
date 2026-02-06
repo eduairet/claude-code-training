@@ -1,0 +1,6 @@
+{
+  "upstream_url": "https://mcp.blockscout.com/mcp",
+  "allowed_tools": [
+    "inspect_contract_code"
+  ]
+}

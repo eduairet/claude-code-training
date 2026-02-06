@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__blockscout-proxy__inspect_contract_code"
+    ]
+  },
+  "enabledMcpjsonServers": [
+    "blockscout-proxy"
+  ]
+}
