@@ -1,0 +1,26 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pnpm test",
+            "statusMessage": "Running tests after edit..."
+          }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pnpm test",
+            "statusMessage": "Running tests after write..."
+          }
+        ]
+      }
+    ]
+  }
+}

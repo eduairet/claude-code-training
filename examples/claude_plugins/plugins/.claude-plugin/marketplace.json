@@ -1,0 +1,10 @@
+{
+  "name": "local",
+  "description": "Local project plugins",
+  "plugins": [
+    {
+      "name": "test-runner",
+      "path": "./test-runner"
+    }
+  ]
+}
