@@ -9,6 +9,7 @@ This repository contains the training data and scripts used to learn Claude Code
 3. [Model Context Protocol (MCP)](./_notes/03-model-context-protocol.md)
 4. [Claude Code Plugins](./_notes/04-claude-code-plugins.md)
 5. [Wiring Claude Code with GitHub](./_notes/05-wiring-claude-code-with-github.md)
+6. [Advanced Workflows](./_notes/06-advanced-workflows.md)
 
 ## Examples
 
