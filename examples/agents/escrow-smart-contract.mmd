@@ -1,0 +1,170 @@
+flowchart TD
+
+    %% ============================================================
+    %% ESCROW SMART CONTRACT — Full Lifecycle (Excalidraw-compatible)
+    %% Single flowchart TD covering all paths:
+    %%   Happy path, Dispute + Arbiter resolution, Timeout, Cancellation
+    %% Node shape legend:
+    %%   ((...))   = Actor
+    %%   ([...])   = Contract State
+    %%   {...}     = Decision point
+    %%   [...]     = Action / method call
+    %%   [/..../]  = Fund movement / terminal outcome
+    %% ============================================================
+
+    %% ── ACTORS ──────────────────────────────────────────────────
+    BUYER((Buyer))
+    SELLER((Seller))
+    ARBITER((Arbiter))
+
+    %% ── PHASE 1: CREATION ───────────────────────────────────────
+    DEPLOY["deploy(seller, arbiter, amount, timeoutDays)"]
+    ST_CREATED(["STATE: CREATED
+stores buyer, seller, arbiter,
+escrowAmount, deadline"])
+
+    BUYER --> DEPLOY
+    DEPLOY --> ST_CREATED
+
+    %% ── PHASE 2: FUNDING ────────────────────────────────────────
+    PRE_FUND{"Has buyer
+deposited?"}
+    ACT_DEPOSIT["buyer.deposit(amount)
+msg.value == escrowAmount"]
+    ACT_CANCEL["owner.cancel()
+no ETH locked"]
+    ST_FUNDED(["STATE: FUNDED
+ETH locked in contract"])
+    OUT_CANCELLED[/"CANCELLED
+no funds moved"/]
+
+    ST_CREATED --> PRE_FUND
+    PRE_FUND -->|"Yes — deposit()"| ACT_DEPOSIT
+    PRE_FUND -->|"No — cancel()"| ACT_CANCEL
+    ACT_DEPOSIT --> ST_FUNDED
+    ACT_CANCEL --> OUT_CANCELLED
+
+    %% ── PHASE 3: DELIVERY DECISION ──────────────────────────────
+    DEC_FUNDED{"Seller delivers
+before timeout?"}
+    ACT_DELIVER["seller.markDelivered()"]
+    ACT_EXPIRE_NODEL["anyone.expire()
+block.timestamp > deadline"]
+    ST_DELIVERED(["STATE: DELIVERED
+dispute window opens"])
+
+    ST_FUNDED --> DEC_FUNDED
+    DEC_FUNDED -->|"Yes"| ACT_DELIVER
+    DEC_FUNDED -->|"No — deadline passed"| ACT_EXPIRE_NODEL
+    ACT_DELIVER --> ST_DELIVERED
+    SELLER --> ACT_DELIVER
+
+    %% ── PHASE 4A: HAPPY PATH ────────────────────────────────────
+    DEC_CONFIRM{"Buyer confirms
+or disputes?"}
+    ACT_CONFIRM["buyer.confirmReceipt()"]
+    ST_COMPLETED(["STATE: COMPLETED"])
+    OUT_SELLER[/"ETH transferred
+to Seller"/]
+
+    ST_DELIVERED --> DEC_CONFIRM
+    DEC_CONFIRM -->|"Confirm"| ACT_CONFIRM
+    ACT_CONFIRM --> ST_COMPLETED
+    ST_COMPLETED --> OUT_SELLER
+    BUYER --> ACT_CONFIRM
+
+    %% ── PHASE 4B: DISPUTE FLOW ──────────────────────────────────
+    ACT_DISPUTE["buyer.openDispute(reason)"]
+    ST_DISPUTED(["STATE: DISPUTED
+funds frozen"])
+    NOTE_EVIDENCE["Arbiter reviews
+off-chain evidence"]
+    DEC_RESOLVE{"Arbiter rules
+in favour of?"}
+    ACT_RESOLVE_S["arbiter.resolve(SELLER)"]
+    ACT_RESOLVE_B["arbiter.resolve(BUYER)"]
+    ACT_EXPIRE_DISP["anyone.expire()
+arbiter deadline exceeded"]
+    ST_RES_SELLER(["STATE: RESOLVED FOR SELLER"])
+    ST_RES_BUYER(["STATE: RESOLVED FOR BUYER"])
+    ST_EXPIRED_DISP(["STATE: EXPIRED
+arbiter did not act"])
+    OUT_SELLER2[/"ETH transferred
+to Seller"/]
+    OUT_BUYER2[/"ETH refunded
+to Buyer"/]
+    OUT_BUYER3[/"ETH refunded
+to Buyer"/]
+
+    DEC_CONFIRM -->|"Dispute"| ACT_DISPUTE
+    %% Buyer can also dispute from FUNDED state if seller is unresponsive
+    ST_FUNDED -->|"buyer.openDispute()
+before timeout"| ACT_DISPUTE
+    ACT_DISPUTE --> ST_DISPUTED
+    ST_DISPUTED --> NOTE_EVIDENCE
+    NOTE_EVIDENCE --> DEC_RESOLVE
+    ARBITER --> ACT_RESOLVE_S
+    ARBITER --> ACT_RESOLVE_B
+    DEC_RESOLVE -->|"Seller"| ACT_RESOLVE_S
+    DEC_RESOLVE -->|"Buyer"| ACT_RESOLVE_B
+    DEC_RESOLVE -->|"Arbiter inactive"| ACT_EXPIRE_DISP
+    ACT_RESOLVE_S --> ST_RES_SELLER
+    ACT_RESOLVE_B --> ST_RES_BUYER
+    ACT_EXPIRE_DISP --> ST_EXPIRED_DISP
+    ST_RES_SELLER --> OUT_SELLER2
+    ST_RES_BUYER --> OUT_BUYER2
+    ST_EXPIRED_DISP --> OUT_BUYER3
+
+    %% ── PHASE 4C: TIMEOUT (no delivery, no dispute) ─────────────
+    ST_EXPIRED(["STATE: EXPIRED
+deadline passed"])
+    OUT_BUYER4[/"ETH refunded
+to Buyer"/]
+
+    ACT_EXPIRE_NODEL --> ST_EXPIRED
+    ST_EXPIRED --> OUT_BUYER4
+
+    %% ── STYLES: colour-code by role / phase ─────────────────────
+
+    %% Actors — dark blue fill
+    style BUYER    fill:#1a3a5c,color:#fff,stroke:#0d2b45
+    style SELLER   fill:#1a3a5c,color:#fff,stroke:#0d2b45
+    style ARBITER  fill:#1a3a5c,color:#fff,stroke:#0d2b45
+
+    %% Contract states — teal
+    style ST_CREATED    fill:#0d7377,color:#fff,stroke:#085b5e
+    style ST_FUNDED     fill:#0d7377,color:#fff,stroke:#085b5e
+    style ST_DELIVERED  fill:#0d7377,color:#fff,stroke:#085b5e
+    style ST_COMPLETED  fill:#0d7377,color:#fff,stroke:#085b5e
+    style ST_DISPUTED   fill:#c0392b,color:#fff,stroke:#922b21
+    style ST_RES_SELLER fill:#1e8449,color:#fff,stroke:#196f3d
+    style ST_RES_BUYER  fill:#1a5276,color:#fff,stroke:#154360
+    style ST_EXPIRED    fill:#7d3c98,color:#fff,stroke:#6c3483
+    style ST_EXPIRED_DISP fill:#7d3c98,color:#fff,stroke:#6c3483
+
+    %% Actions — light grey
+    style DEPLOY          fill:#eaecee,color:#1c2833,stroke:#aab7b8
+    style ACT_DEPOSIT     fill:#eaecee,color:#1c2833,stroke:#aab7b8
+    style ACT_CANCEL      fill:#eaecee,color:#1c2833,stroke:#aab7b8
+    style ACT_DELIVER     fill:#eaecee,color:#1c2833,stroke:#aab7b8
+    style ACT_CONFIRM     fill:#eaecee,color:#1c2833,stroke:#aab7b8
+    style ACT_DISPUTE     fill:#eaecee,color:#1c2833,stroke:#aab7b8
+    style ACT_RESOLVE_S   fill:#eaecee,color:#1c2833,stroke:#aab7b8
+    style ACT_RESOLVE_B   fill:#eaecee,color:#1c2833,stroke:#aab7b8
+    style ACT_EXPIRE_NODEL fill:#eaecee,color:#1c2833,stroke:#aab7b8
+    style ACT_EXPIRE_DISP  fill:#eaecee,color:#1c2833,stroke:#aab7b8
+    style NOTE_EVIDENCE    fill:#fdf2e9,color:#784212,stroke:#e59866
+
+    %% Decisions — amber
+    style PRE_FUND    fill:#d4ac0d,color:#1c2833,stroke:#b7950b
+    style DEC_FUNDED  fill:#d4ac0d,color:#1c2833,stroke:#b7950b
+    style DEC_CONFIRM fill:#d4ac0d,color:#1c2833,stroke:#b7950b
+    style DEC_RESOLVE fill:#d4ac0d,color:#1c2833,stroke:#b7950b
+
+    %% Fund outcome terminals — green for seller, blue for buyer, grey for cancelled
+    style OUT_SELLER      fill:#27ae60,color:#fff,stroke:#1e8449
+    style OUT_SELLER2     fill:#27ae60,color:#fff,stroke:#1e8449
+    style OUT_BUYER2      fill:#2e86c1,color:#fff,stroke:#1a5276
+    style OUT_BUYER3      fill:#2e86c1,color:#fff,stroke:#1a5276
+    style OUT_BUYER4      fill:#2e86c1,color:#fff,stroke:#1a5276
+    style OUT_CANCELLED   fill:#95a5a6,color:#fff,stroke:#717d7e
