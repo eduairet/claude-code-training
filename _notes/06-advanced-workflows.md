@@ -59,7 +59,7 @@ Custom agents use a Markdown file with YAML frontmatter to configure `tools`, `m
 
 **Example — `.claude/agents/rust.md`:**
 
-````markdown
+```markdown
 ---
 name: rust
 description: Use for Rust development tasks including writing, reviewing, and debugging Rust code.
@@ -75,7 +75,7 @@ You are a Rust development specialist. Follow these guidelines:
 - Run `cargo test` to verify nothing is broken.
 - Prefer `&str` over `String` in function parameters when ownership isn't needed.
 - Add doc comments (`///`) to all public items.
-````
+```
 
 You would then invoke this agent by telling Claude something like _"use the rust agent to refactor the parser module"_.
 
@@ -85,3 +85,68 @@ You would then invoke this agent by telling Claude something like _"use the rust
 - **Parallel execution** — run multiple independent research or build tasks at the same time.
 - **Tool restrictions** — create read-only reviewers, security checkers, etc.
 - **Cost control** — route simple tasks to faster/cheaper models (e.g., `model: haiku`).
+
+## Infinite Subagents
+
+Subagents cannot spawn other subagents — that's a hard limit. But you can work around it by combining **custom agents** with **parallel sessions** and **orchestration prompts** to create workflows that scale beyond a single agent's context window.
+
+**The core idea:**
+
+Instead of nesting agents inside agents, you chain them sequentially or fan them out in parallel, with the main Claude session acting as the orchestrator.
+
+**Pattern 1 — Sequential chaining:**
+
+1. Ask Claude to spawn a **Plan** subagent to research and outline the work.
+2. Feed the plan's output into a **General-purpose** subagent that implements step 1.
+3. Spawn another subagent for step 2, passing along the prior context.
+4. Repeat for as many steps as needed.
+
+Each subagent gets a fresh context window, so you're never limited by a single conversation's length.
+
+**Pattern 2 — Fan-out / fan-in:**
+
+1. Use the main session to break a large task into independent subtasks.
+2. Spawn multiple subagents **in the background**, one per subtask.
+3. Collect results as each completes, then synthesize in the main session.
+
+This is useful for bulk operations like migrating many files, running analysis across multiple modules, or generating tests for several components at once.
+
+**Pattern 3 — Multi-session orchestration:**
+
+1. Open multiple terminal sessions, each running `claude`.
+2. Give each session a different slice of the work (e.g., by directory or feature).
+3. Each session can independently spawn its own subagents.
+
+This multiplies your capacity: 3 sessions × multiple subagents each = many tasks progressing simultaneously.
+
+**Key guidelines:**
+
+- Keep each subagent's task **focused and self-contained** — don't rely on shared state between them.
+- Pass explicit context (file paths, summaries, decisions) between steps rather than assuming agents remember prior work.
+- Use **background execution** for independent tasks and **foreground** when later steps depend on the result.
+- Coordinate file access — avoid two subagents editing the same file at the same time.
+
+**Real-world example — Infinite Agentic Loop:**
+
+The [Infinite Agentic Loop](https://github.com/disler/infinite-agentic-loop) project by [@disler](https://github.com/disler) is a proof-of-concept that implements these patterns using a custom slash command (`/project:infinite`). It demonstrates how a single master prompt can orchestrate waves of parallel subagents to generate evolving iterations of content.
+
+The workflow has five phases:
+
+1. **Specification analysis** — read a spec file that defines what to generate.
+2. **Directory reconnaissance** — scan existing outputs to find the highest iteration and avoid duplicates.
+3. **Iteration strategy** — plan how each new iteration builds on previous ones.
+4. **Parallel agent coordination** — spawn batches of 3–5 subagents, each assigned a unique iteration number and creative direction.
+5. **Wave management** — once a batch completes, launch the next wave. In "infinite" mode, this repeats until the context window is exhausted.
+
+It supports four execution modes:
+
+| Mode        | Count        | Behavior                                  |
+| ----------- | ------------ | ----------------------------------------- |
+| Single      | `1`          | One generation pass                       |
+| Small batch | `5`          | Five parallel agents at once              |
+| Large batch | `20`         | Four waves of five agents                 |
+| Infinite    | `"infinite"` | Continuous waves until context limits hit |
+
+The key implementation detail is the **custom slash command** (`.claude/commands/infinite.md`) that acts as the master orchestrator — it parses arguments, reads the spec, checks the output directory, and dispatches subagents with explicit context so each one works independently.
+
+This is a great reference for building your own orchestration commands. You can adapt the pattern for any repetitive-but-varied task: generating test cases, creating component variants, producing documentation across modules, etc.
