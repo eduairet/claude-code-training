@@ -18,6 +18,7 @@ This repository contains the training data and scripts used to learn Claude Code
 2. [Color image generator hook](./examples/color_hook/CLAUDE.md)
 3. [MCP Management](./examples/mcp_management/CLAUDE.md)
 4. [Claude Code Plugins](./examples/claude_plugins/CLAUDE.md)
+5. [Output Styles](./examples/output-styles/CLAUDE.md)
 
 ## References
 
