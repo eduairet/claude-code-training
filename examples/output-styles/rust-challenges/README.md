@@ -1,16 +1,12 @@
 # Rust Coding Challenges
 
-5 progressively interesting Rust challenges — you write the code, tests are provided.
+A Rust coding challenge — you write the code, tests are provided.
 
-## Challenges
+## Challenge
 
 | # | Challenge | Concepts |
 |---|-----------|----------|
 | 1 | **FizzBuzz Iterator** | `Iterator` trait, `impl`, ownership |
-| 2 | **MinStack** | Generics, trait bounds (`Ord + Clone`), O(1) design |
-| 3 | **Roman Numerals** | Pattern matching, lookup tables, string building |
-| 4 | **Balanced Brackets** | `HashMap`, `Vec` as stack, `char` matching |
-| 5 | **Flatten Nested Vec** | Recursive enums, pattern matching, recursion |
 
 ## Getting Started
 
@@ -24,12 +20,8 @@ docker run -it --rm -v "$(pwd):/app" -w /app rust-challenges bash
 # Inside the container — run all tests
 cargo test
 
-# Run tests for a specific challenge
+# Run tests for the FizzBuzz challenge
 cargo test fizzbuzz
-cargo test minstack
-cargo test roman
-cargo test balanced
-cargo test flatten
 ```
 
 ## How to Solve
