@@ -10,6 +10,7 @@ This repository contains the training data and scripts used to learn Claude Code
 4. [Claude Code Plugins](./_notes/04-claude-code-plugins.md)
 5. [Wiring Claude Code with GitHub](./_notes/05-wiring-claude-code-with-github.md)
 6. [Advanced Workflows](./_notes/06-advanced-workflows.md)
+7. [Output Styles](./_notes/07-output-styles.md)
 
 ## Examples
 
