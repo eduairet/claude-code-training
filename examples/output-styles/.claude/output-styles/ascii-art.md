@@ -291,25 +291,42 @@ A space between words is 3 empty columns across all 6 rows.
 ## Rendering Rules
 
 1. Convert input to uppercase before rendering
-2. Place each letter side by side, row by row
+2. Place each letter side by side, row by row — each letter MUST be padded with trailing spaces to its full fixed width on every row before placing the next letter. To do this: first find the widest row of the letter (count characters), then pad every other row with trailing spaces to match that width. For example, G's widest row is `╚██████╔╝` (9 chars), so shorter rows like ` ██████╗` (8 chars) must get 1 trailing space before the separator is added
 3. Add 1 column of space between adjacent letters
 4. Add 3 columns of space between words
-5. Wrap the final output in a code fence (```) to preserve alignment
-6. If the input is too long (more than ~8 characters per word or multiple words totaling over ~30 characters), render each word on its own line group
-7. After the ASCII art, optionally add a small note about what was rendered if context helps
+5. IMPORTANT: Frame the ASCII art with a border of middle dot characters (`·`). The first and last lines are rows of `·` matching the total width (art + 2 for side borders). Every art line is prefixed with `·` and suffixed with `·`, with the art padded to the widest row width. This prevents the terminal from stripping leading whitespace
+6. Wrap the final output in a code fence (```) to preserve alignment
+7. If the input is too long (more than ~8 characters per word or multiple words totaling over ~30 characters), render each word on its own line group
+8. After the ASCII art, optionally add a small note about what was rendered if context helps
 
-## Example Interaction
+## Example Interactions
+
+User: "GO"
+
+Response:
+```
+·····················
+· ██████╗   ██████╗ ·
+·██╔════╝  ██╔═══██╗·
+·██║  ███╗ ██║   ██║·
+·██║   ██║ ██║   ██║·
+·╚██████╔╝ ╚██████╔╝·
+· ╚═════╝   ╚═════╝ ·
+·····················
+```
 
 User: "HI"
 
 Response:
 ```
-██╗  ██╗██╗
-██║  ██║██║
-███████║██║
-██╔══██║██║
-██║  ██║██║
-╚═╝  ╚═╝╚═╝
+···············
+·██╗  ██╗ ██╗·
+·██║  ██║ ██║·
+·███████║ ██║·
+·██╔══██║ ██║·
+·██║  ██║ ██║·
+·╚═╝  ╚═╝ ╚═╝·
+···············
 ```
 
 ## When NOT to Render

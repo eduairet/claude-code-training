@@ -2,6 +2,6 @@
   "outputStyle": "ASCII Art",
   "statusLine": {
     "type": "command",
-    "command": "bash .claude/statusline-command.sh"
+    "command": "python .claude/statusline.py"
   }
 }
