@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Font Converter &mdash; OTF/TTF to WOFF2</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="card">
+    <h1>Font Converter</h1>
+    <p class="subtitle">Convert OTF &amp; TTF fonts to WOFF2</p>
+
+    <div class="drop-zone" id="dropZone">
+      <span class="drop-zone__prompt">
+        <span class="icon" aria-hidden="true">&#128196;</span>
+        Drop your .otf or .ttf font here<br>
+        <small>or click to browse</small>
+      </span>
+      <input
+        type="file"
+        class="drop-zone__input"
+        id="fileInput"
+        accept=".otf,.ttf"
+      >
+    </div>
+
+    <p class="filename" id="fileName"></p>
+    <p class="status" id="status"></p>
+
+    <button class="download-btn" id="downloadBtn" type="button">
+      Download .woff2
+    </button>
+
+    <div class="tester" id="tester">
+      <div
+        class="tester__preview"
+        id="testerPreview"
+        contenteditable="true"
+        spellcheck="false"
+      >The quick brown fox jumps over the lazy dog</div>
+
+      <div class="tester__controls">
+        <div class="tester__slider-group">
+          <label for="fontSizeSlider">Size <span id="fontSizeValue">32</span>px</label>
+          <input
+            type="range"
+            id="fontSizeSlider"
+            min="12"
+            max="120"
+            value="32"
+          >
+        </div>
+        <div class="tester__axes" id="testerAxes"></div>
+      </div>
+    </div>
+  </main>
+
+  <script src="converter.js"></script>
+  <script>
+    (function () {
+      "use strict";
+
+      var dropZone   = document.getElementById("dropZone");
+      var fileInput  = document.getElementById("fileInput");
+      var statusEl   = document.getElementById("status");
+      var fileNameEl = document.getElementById("fileName");
+      var downloadBtn = document.getElementById("downloadBtn");
+
+      var tester       = document.getElementById("tester");
+      var testerPreview = document.getElementById("testerPreview");
+      var testerAxes   = document.getElementById("testerAxes");
+      var fontSizeSlider = document.getElementById("fontSizeSlider");
+      var fontSizeValue  = document.getElementById("fontSizeValue");
+
+      var woff2Blob = null;
+      var woff2Name = "";
+      var previewFontURL = null;
+
+      var ALLOWED_EXT = [".otf", ".ttf"];
+
+      // --- helpers ---
+
+      function hideTester() {
+        tester.classList.remove("tester--visible");
+        testerAxes.innerHTML = "";
+        if (previewFontURL) {
+          URL.revokeObjectURL(previewFontURL);
+          previewFontURL = null;
+        }
+      }
+
+      function resetUI() {
+        statusEl.textContent = "";
+        statusEl.className = "status";
+        fileNameEl.textContent = "";
+        downloadBtn.classList.remove("download-btn--visible");
+        dropZone.classList.remove("drop-zone--error");
+        woff2Blob = null;
+        woff2Name = "";
+        hideTester();
+      }
+
+      function showError(msg) {
+        statusEl.textContent = msg;
+        statusEl.className = "status status--error";
+        dropZone.classList.add("drop-zone--error");
+        setTimeout(function () {
+          dropZone.classList.remove("drop-zone--error");
+        }, 1500);
+      }
+
+      function extensionOf(name) {
+        var dot = name.lastIndexOf(".");
+        return dot === -1 ? "" : name.substring(dot).toLowerCase();
+      }
+
+      function toWoff2Name(original) {
+        var dot = original.lastIndexOf(".");
+        var base = dot === -1 ? original : original.substring(0, dot);
+        return base + ".woff2";
+      }
+
+      function isAllowed(name) {
+        return ALLOWED_EXT.indexOf(extensionOf(name)) !== -1;
+      }
+
+      // --- conversion ---
+
+      async function handleFile(file) {
+        if (!isAllowed(file.name)) {
+          showError("Only .otf and .ttf files are accepted.");
+          return;
+        }
+
+        resetUI();
+        fileNameEl.textContent = file.name;
+        statusEl.textContent = "Converting\u2026";
+        statusEl.className = "status status--converting";
+
+        try {
+          var arrayBuffer = await file.arrayBuffer();
+          var blob = await convertToWoff2(arrayBuffer);
+
+          woff2Blob = blob;
+          woff2Name = toWoff2Name(file.name);
+
+          statusEl.textContent = "Done!";
+          statusEl.className = "status status--done";
+          downloadBtn.classList.add("download-btn--visible");
+
+          // --- Font Tester setup ---
+          await setupTester(arrayBuffer, blob);
+        } catch (err) {
+          showError("Conversion failed: " + (err.message || err));
+        }
+      }
+
+      // --- font tester ---
+
+      function applyVariationSettings() {
+        var sliders = testerAxes.querySelectorAll("input[type=range]");
+        var parts = [];
+        sliders.forEach(function (s) {
+          parts.push('"' + s.dataset.tag + '" ' + s.value);
+        });
+        testerPreview.style.fontVariationSettings = parts.length ? parts.join(", ") : "normal";
+      }
+
+      async function setupTester(originalBuffer, woff2BlobResult) {
+        hideTester();
+
+        // Register @font-face from the WOFF2 blob
+        previewFontURL = URL.createObjectURL(woff2BlobResult);
+        var face = new FontFace("preview-font", "url(" + previewFontURL + ")");
+        await face.load();
+        document.fonts.add(face);
+
+        testerPreview.style.fontFamily = '"preview-font"';
+        testerPreview.style.fontSize = fontSizeSlider.value + "px";
+
+        // Parse variable-font axes from the original buffer
+        var axes = typeof parseFontAxes === "function" ? parseFontAxes(originalBuffer) : [];
+
+        testerAxes.innerHTML = "";
+        if (axes.length) {
+          axes.forEach(function (axis) {
+            var group = document.createElement("div");
+            group.className = "tester__slider-group";
+
+            var label = document.createElement("label");
+            label.textContent = axis.tag + " " + axis.default;
+
+            var input = document.createElement("input");
+            input.type = "range";
+            input.min = axis.min;
+            input.max = axis.max;
+            input.value = axis.default;
+            input.step = (axis.max - axis.min) > 100 ? 1 : 0.1;
+            input.dataset.tag = axis.tag;
+
+            input.addEventListener("input", function () {
+              label.textContent = axis.tag + " " + input.value;
+              applyVariationSettings();
+            });
+
+            group.appendChild(label);
+            group.appendChild(input);
+            testerAxes.appendChild(group);
+          });
+
+          applyVariationSettings();
+        }
+
+        tester.classList.add("tester--visible");
+      }
+
+      fontSizeSlider.addEventListener("input", function () {
+        fontSizeValue.textContent = fontSizeSlider.value;
+        testerPreview.style.fontSize = fontSizeSlider.value + "px";
+      });
+
+      // --- drag & drop ---
+
+      dropZone.addEventListener("dragover", function (e) {
+        e.preventDefault();
+        dropZone.classList.add("drop-zone--over");
+      });
+
+      dropZone.addEventListener("dragleave", function () {
+        dropZone.classList.remove("drop-zone--over");
+      });
+
+      dropZone.addEventListener("drop", function (e) {
+        e.preventDefault();
+        dropZone.classList.remove("drop-zone--over");
+
+        var files = e.dataTransfer.files;
+        if (files.length > 0) {
+          handleFile(files[0]);
+        }
+      });
+
+      // --- click to browse ---
+
+      dropZone.addEventListener("click", function () {
+        fileInput.click();
+      });
+
+      fileInput.addEventListener("change", function () {
+        if (fileInput.files.length > 0) {
+          handleFile(fileInput.files[0]);
+          fileInput.value = "";
+        }
+      });
+
+      // --- download ---
+
+      downloadBtn.addEventListener("click", function () {
+        if (!woff2Blob) return;
+        var url = URL.createObjectURL(woff2Blob);
+        var a = document.createElement("a");
+        a.href = url;
+        a.download = woff2Name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      });
+    })();
+  </script>
+</body>
+</html>
