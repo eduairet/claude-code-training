@@ -1,0 +1,4 @@
+{
+  "title": "Game of Life",
+  "description": "Conway's cellular automaton with aqua glow — click to draw cells, R to randomize, C to clear, Space to pause."
+}

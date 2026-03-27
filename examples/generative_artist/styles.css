@@ -1,0 +1,280 @@
+/* ── Reset & Base ────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #0a0a0f;
+  --surface: #14141f;
+  --surface-hover: #1c1c2e;
+  --border: #2a2a3d;
+  --text: #e8e8f0;
+  --text-muted: #8888a0;
+  --accent: #00d4aa;
+  --accent-light: #48efcf;
+  --radius: 12px;
+  --transition: 0.2s ease;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: "Outfit", "Roboto", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+/* ── Header ─────────────────────────────────────────────── */
+
+.gallery-header {
+  text-align: center;
+  padding: 3rem 1.5rem 2rem;
+}
+
+.gallery-header h1 {
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, #00d4aa, #48efcf);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+  font-size: 1.05rem;
+}
+
+/* ── Gallery Grid ───────────────────────────────────────── */
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  padding: 1rem 2rem 4rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* ── Card ───────────────────────────────────────────────── */
+
+.card {
+  background: var(--surface);
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+  display: flex;
+  flex-direction: column;
+}
+
+.card:hover,
+.card:focus-visible {
+  border-color: rgba(0, 212, 170, 0.4);
+  box-shadow: 0 0 20px rgba(0, 212, 170, 0.3), 0 0 40px rgba(0, 212, 170, 0.1);
+  outline: none;
+}
+
+.card-thumbnail {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  background: var(--surface-hover);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.card-thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  animation: thumb-fade-in 0.3s ease;
+}
+
+@keyframes thumb-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ── View Transitions ──────────────────────────────────── */
+
+::view-transition-new(card-*):only-child {
+  animation: vt-card-in 4s cubic-bezier(0.05, 0.7, 0.1, 1) both;
+}
+
+@keyframes vt-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+::view-transition-group(sketch-expand) {
+  animation-duration: 0.6s;
+  animation-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);
+  z-index: 999;
+}
+
+::view-transition-old(sketch-expand) {
+  animation: vt-blur-out 0.6s cubic-bezier(0.25, 0.1, 0.25, 1) both;
+}
+
+::view-transition-new(sketch-expand) {
+  animation: vt-blur-in 0.6s cubic-bezier(0.25, 0.1, 0.25, 1) both;
+}
+
+@keyframes vt-blur-out {
+  from { filter: blur(0); }
+  to { filter: blur(24px); }
+}
+
+@keyframes vt-blur-in {
+  from { filter: blur(24px); }
+  to { filter: blur(0); }
+}
+
+.card-thumbnail .placeholder {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    110deg,
+    var(--surface-hover) 30%,
+    rgba(0, 212, 170, 0.06) 50%,
+    var(--surface-hover) 70%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.card-body {
+  padding: 1rem 1.2rem 1.2rem;
+}
+
+.card-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+  color: var(--accent);
+}
+
+.card-description {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+/* ── Sketch Viewer ──────────────────────────────────────── */
+
+.viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.viewer.hidden {
+  display: none;
+}
+
+.viewer-close {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 200;
+  background: rgba(20, 20, 31, 0.85);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.5rem 1rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+  backdrop-filter: blur(24px);
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.viewer-close:hover,
+.viewer-close:focus-visible {
+  background: rgba(0, 212, 170, 0.3);
+  border-color: var(--accent);
+}
+
+.sketch-container {
+  width: 100vw;
+  height: 100vh;
+}
+
+.sketch-container canvas {
+  display: block;
+}
+
+/* ── Loading State ──────────────────────────────────────── */
+
+.gallery-loading,
+.gallery-empty {
+  text-align: center;
+  padding: 4rem;
+  color: var(--text-muted);
+  grid-column: 1 / -1;
+}
+
+.sketch-error {
+  color: var(--text-muted);
+  text-align: center;
+  padding: 2rem;
+}
+
+/* ── Accessibility ──────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ── Responsive ─────────────────────────────────────────── */
+
+@media (max-width: 600px) {
+  .gallery-grid {
+    grid-template-columns: 1fr;
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .gallery-header {
+    padding: 2rem 1rem 1.5rem;
+  }
+}

@@ -12,6 +12,7 @@ This repository contains the training data and scripts used to learn Claude Code
 6. [Advanced Workflows](./_notes/06-advanced-workflows.md)
 7. [Output Styles](./_notes/07-output-styles.md)
 8. [Agent Teams](./_notes/08-agent-teams.md)
+9. [Agent Skills](./_notes/09-agent-skills.md)
 
 ## Examples
 
@@ -21,6 +22,7 @@ This repository contains the training data and scripts used to learn Claude Code
 4. [Claude Code Plugins](./examples/claude_plugins/CLAUDE.md)
 5. [Output Styles](./examples/output-styles/CLAUDE.md)
 6. [Agent Teams](./examples/agent_teams/CLAUDE.md)
+7. [Generative Artist](./examples/generative_artist/CLAUDE.md)
 
 ## References
 

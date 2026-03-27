@@ -1,0 +1,4 @@
+{
+  "title": "Flow Field",
+  "description": "Particles follow a Perlin noise flow field. Move your mouse to influence the field. Press 'r' to reset."
+}

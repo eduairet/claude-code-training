@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generative Art Gallery</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.9.4/lib/p5.min.js"></script>
+</head>
+<body>
+  <header class="gallery-header">
+    <h1>Generative Art Gallery</h1>
+    <p class="subtitle">Interactive P5.js sketches — click to explore</p>
+  </header>
+
+  <main id="gallery" class="gallery-grid" role="list" aria-label="Sketch gallery">
+    <!-- Cards injected by app.js -->
+  </main>
+
+  <div id="viewer" class="viewer hidden" role="dialog" aria-label="Sketch viewer" aria-hidden="true">
+    <button id="viewer-close" class="viewer-close" aria-label="Close sketch and return to gallery">&larr; Back</button>
+    <div id="sketch-container" class="sketch-container"></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
