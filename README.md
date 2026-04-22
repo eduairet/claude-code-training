@@ -15,6 +15,7 @@ This repository contains the training data and scripts used to learn Claude Code
 9. [Agent Skills](./_notes/09-agent-skills.md)
 10. [Claude Code Desktop](./_notes/10-claude-code-desktop.md)
 11. [Under the hood - Deep Agents](./_notes/11-under-the-hood-deep-agents.md)
+12. [Under the hood - Skills](./_notes/12-under-the-hood-skills.md)
 
 ## Examples
 
