@@ -1,5 +1,10 @@
 # Claude Code overview
 
+## Why Claude Code was inevitable?
+
+- Before Claude Code was shipped, Cursor was already providing an AI coding assistant with code generation capabilities using Anthropic's models in the background, so cutting off that middleman and providing direct access to the models was the next logical step.
+- The release of Claude Code also coincided with the growing popularity of agentic workflows and the need for more autonomous coding assistants that can handle complex tasks, manage context effectively, and integrate with various tools and APIs.
+
 ## Getting started with Claude Code
 
 - Check the [Claude Code official documentation](https://code.claude.com/docs/) for installation and setup instructions.
