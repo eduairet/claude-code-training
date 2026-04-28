@@ -5,6 +5,10 @@
 - Before Claude Code was shipped, Cursor was already providing an AI coding assistant with code generation capabilities using Anthropic's models in the background, so cutting off that middleman and providing direct access to the models was the next logical step.
 - The release of Claude Code also coincided with the growing popularity of agentic workflows and the need for more autonomous coding assistants that can handle complex tasks, manage context effectively, and integrate with various tools and APIs.
 
+## English is the new abstraction
+
+- With the advancements in large language models, natural language has become a powerful interface for programming. Instead of writing code in a specific programming language, developers can now describe their intentions and requirements in plain English, and the model can generate the corresponding code. This shift allows for faster prototyping, easier debugging, and more accessible programming both for experts and non-experts.
+
 ## Getting started with Claude Code
 
 - Check the [Claude Code official documentation](https://code.claude.com/docs/) for installation and setup instructions.
